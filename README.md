@@ -78,7 +78,7 @@ In one real run the first draft was rejected for writing "1st/99th percentile", 
 
 ```bash
 uv sync
-uv run pytest                          # 24 checks against known answers (no network)
+uv run pytest                          # 26 checks against known answers (no network)
 uv run python -m uplift.run_synthetic  # synthetic pipeline -> results/synthetic_report.json
 uv run python -m uplift.power --p-control 0.08 --n-control 4 --n-treatment 11
 
