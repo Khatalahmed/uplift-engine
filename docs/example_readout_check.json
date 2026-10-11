@@ -1,0 +1,181 @@
+{
+  "ok": true,
+  "matched": [
+    {
+      "number": "2.1",
+      "fact": "dataset_version"
+    },
+    {
+      "number": "13,979,592",
+      "fact": "users"
+    },
+    {
+      "number": "6,987,897",
+      "fact": "eval_users"
+    },
+    {
+      "number": "85",
+      "fact": "treated_share"
+    },
+    {
+      "number": "4",
+      "fact": "uplift_model_count"
+    },
+    {
+      "number": "0.999",
+      "fact": "srm_p"
+    },
+    {
+      "number": "0.510",
+      "fact": "treatment_auc"
+    },
+    {
+      "number": "0.5",
+      "fact": "treatment_auc"
+    },
+    {
+      "number": "84.5",
+      "fact": "p_treated_low"
+    },
+    {
+      "number": "89.1",
+      "fact": "p_treated_high"
+    },
+    {
+      "number": "1.02",
+      "fact": "naive_effect"
+    },
+    {
+      "number": "95",
+      "fact": "ci_level"
+    },
+    {
+      "number": "0.98",
+      "fact": "naive_ci_low"
+    },
+    {
+      "number": "1.06",
+      "fact": "naive_ci_high"
+    },
+    {
+      "number": "36",
+      "fact": "naive_overstatement"
+    },
+    {
+      "number": "0.75",
+      "fact": "aipw_effect"
+    },
+    {
+      "number": "95",
+      "fact": "ci_level"
+    },
+    {
+      "number": "0.72",
+      "fact": "aipw_ci_low"
+    },
+    {
+      "number": "0.79",
+      "fact": "aipw_ci_high"
+    },
+    {
+      "number": "10",
+      "fact": "budget_10"
+    },
+    {
+      "number": "20",
+      "fact": "budget_20"
+    },
+    {
+      "number": "30",
+      "fact": "budget_30"
+    },
+    {
+      "number": "6,264",
+      "fact": "random_extra_visits_10"
+    },
+    {
+      "number": "12,790",
+      "fact": "random_extra_visits_20"
+    },
+    {
+      "number": "18,441",
+      "fact": "random_extra_visits_30"
+    },
+    {
+      "number": "105",
+      "fact": "risk_extra_visits_10"
+    },
+    {
+      "number": "138",
+      "fact": "risk_extra_visits_20"
+    },
+    {
+      "number": "256",
+      "fact": "risk_extra_visits_30"
+    },
+    {
+      "number": "37,424",
+      "fact": "s_learner_extra_visits_10"
+    },
+    {
+      "number": "44,313",
+      "fact": "s_learner_extra_visits_20"
+    },
+    {
+      "number": "51,310",
+      "fact": "s_learner_extra_visits_30"
+    },
+    {
+      "number": "34,063",
+      "fact": "t_learner_extra_visits_10"
+    },
+    {
+      "number": "45,211",
+      "fact": "t_learner_extra_visits_20"
+    },
+    {
+      "number": "50,928",
+      "fact": "t_learner_extra_visits_30"
+    },
+    {
+      "number": "35,809",
+      "fact": "x_learner_extra_visits_10"
+    },
+    {
+      "number": "44,696",
+      "fact": "x_learner_extra_visits_20"
+    },
+    {
+      "number": "52,207",
+      "fact": "x_learner_extra_visits_30"
+    },
+    {
+      "number": "34,667",
+      "fact": "causal_forest_extra_visits_10"
+    },
+    {
+      "number": "44,818",
+      "fact": "causal_forest_extra_visits_20"
+    },
+    {
+      "number": "50,848",
+      "fact": "causal_forest_extra_visits_30"
+    },
+    {
+      "number": "10",
+      "fact": "budget_10"
+    },
+    {
+      "number": "6.0",
+      "fact": "best_vs_random_10"
+    },
+    {
+      "number": "0.75",
+      "fact": "aipw_effect"
+    }
+  ],
+  "unknown": [],
+  "leaked_names": [],
+  "attempts": 1,
+  "rejected_drafts": []
+}

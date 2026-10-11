@@ -1,0 +1,26 @@
+[project]
+name = "uplift-engine"
+version = "0.1.0"
+description = "Who will a campaign actually change? Experiment checks, power analysis and uplift models, validated on planted ground truth and a 14M-row randomized trial"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.1",
+    "econml>=0.17.0",
+    "numpy>=2.0",
+    "openai>=3.28.0",
+    "pandas>=2.2",
+    "python-dotenv>=1.2.4",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+# run from the repo root so `import uplift` resolves; tests live in tests/
+pythonpath = ["."]
+testpaths = ["tests"]
