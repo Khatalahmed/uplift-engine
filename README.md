@@ -45,19 +45,20 @@ Data: [Criteo Uplift v2.1](https://huggingface.co/datasets/criteo/criteo-uplift)
 
 > Criteo sub-sampled the data so the original incrementality can't be recovered: absolute effects are deliberately distorted. **Rankings are what this dataset can judge.**
 
-**Who to target.** Estimated extra visits among the 7M held-out users when the top *k*% by each score are treated:
+**Who to target.** Estimated extra visits among the 7M held-out users when the top *k*% by each score are treated, with 95% intervals underneath:
 
 | Targeting by | Top 10% | Top 20% | Top 30% |
 |---|---|---|---|
-| random | 6,264 | 12,790 | 18,441 |
-| **lowest predicted visit chance ("risk")** | **105** | **138** | **256** |
-| S-learner | **37,424** | 44,313 | 51,310 |
-| T-learner | 34,063 | **45,211** | 50,928 |
-| X-learner (learned propensity) | 35,809 | 44,696 | **52,207** |
-| Causal forest (learned propensity) | 34,667 | 44,818 | 50,848 |
+| random | 6,264<br><sub>5,457–6,949</sub> | 12,790<br><sub>11,727–13,942</sub> | 18,441<br><sub>17,149–19,802</sub> |
+| **lowest predicted visit chance ("risk")** | **105**<br><sub>29–194</sub> | **138**<br><sub>28–255</sub> | **256**<br><sub>88–403</sub> |
+| S-learner | **37,424**<br><sub>35,617–39,042</sub> | 44,313<br><sub>42,257–46,144</sub> | 51,310<br><sub>49,065–53,419</sub> |
+| T-learner | 34,063<br><sub>32,225–35,889</sub> | **45,211**<br><sub>43,421–47,146</sub> | 50,928<br><sub>48,776–52,709</sub> |
+| X-learner (learned propensity) | 35,809<br><sub>34,163–37,527</sub> | 44,696<br><sub>42,753–46,619</sub> | **52,207**<br><sub>50,234–54,327</sub> |
+| Causal forest (learned propensity) | 34,667<br><sub>33,027–36,376</sub> | 44,818<br><sub>42,701–46,853</sub> | 50,848<br><sub>48,735–52,693</sub> |
 
-- **Uplift targeting: ~6× the extra visits of random** at a 10% budget.
+- **Uplift targeting: ~6× the extra visits of random** at a 10% budget (S-learner 95% interval 5.3–6.8×; every uplift model's lower bound is at least 4.8×).
 - **Risk targeting: about zero.** The users least likely to visit are not the ones an ad moves. Same lesson as the synthetic campaign, now on real data.
+- **What the intervals do and don't say.** They come from a 200-resample Poisson bootstrap of the evaluation users, with the models held fixed: they show how much the numbers would move with different users, not with a refit. Each model is compared with random in the same resamples; whether one uplift model beats *another* needs that paired comparison between them, which is not computed yet, so the bold "best" cells are point estimates, not winners.
 - Learning the propensity lifted the X-learner's Qini from 0.0020 to 0.0029.
 
 ## 3. A readout the LLM can't make up numbers in
@@ -78,7 +79,7 @@ Drafts do get rejected. In an earlier run (its log was not kept), the first draf
 
 ```bash
 uv sync
-uv run pytest                          # 26 checks against known answers (no network)
+uv run pytest                          # 36 checks against known answers (no network)
 uv run python -m uplift.run_synthetic  # synthetic pipeline -> results/synthetic_report.json
 uv run python -m uplift.power --p-control 0.08 --n-control 4 --n-treatment 11
 

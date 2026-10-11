@@ -36,7 +36,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
 from .data import FEATURES, PARQUET, arm_summary, feature_balance, load_folds
-from .evaluate import qini_coefficient, qini_curve, uplift_at_k
+from .evaluate import qini_at_k_intervals, qini_coefficient, qini_curve, uplift_at_k
 from .experiment import aipw, diff_in_means, diff_in_proportions, srm_check
 from .learners import CausalForest, RiskModel, SLearner, TLearner, XLearner
 
@@ -44,6 +44,7 @@ OUTCOME = "visit"
 TRAIN_FOLDS = [0]
 EVAL_FOLDS = [5, 6, 7, 8, 9]
 BUDGETS = [0.1, 0.2, 0.3]
+N_BOOT = 200          # Poisson-bootstrap resamples of the evaluation rows
 RESULTS = Path("results")
 
 
@@ -100,6 +101,8 @@ def run(seed: int = 7, skip_forest: bool = False) -> dict:
     for m in models:
         scores[m.name] = m.predict_uplift(ev[FEATURES])
     _log("scored eval folds", t0)
+    intervals = qini_at_k_intervals(y, t, scores, BUDGETS, reference="random", n_boot=N_BOOT, seed=seed)
+    _log(f"bootstrapped {N_BOOT} resamples for policy intervals", t0)
 
     rows, curves = [], {}
     for name, s in scores.items():
@@ -108,6 +111,10 @@ def run(seed: int = 7, skip_forest: bool = False) -> dict:
         for k in BUDGETS:
             row[f"uplift@{int(k * 100)}%"] = uplift_at_k(y, t, s, k)
             row[f"extra_visits@{int(k * 100)}%"] = float(q[int(round(k * len(y)))])
+            band = intervals[name][k]
+            row[f"extra_visits@{int(k * 100)}%_ci"] = list(band["extra"])
+            row[f"vs_random@{int(k * 100)}%_ci"] = list(band["vs_reference"])
+            row[f"x_random@{int(k * 100)}%_ci"] = list(band["ratio"])
         rows.append(row)
         idx = np.linspace(0, len(frac) - 1, 101).astype(int)  # 101 points is enough to plot
         curves[name] = {"frac": frac[idx].tolist(), "qini": q[idx].tolist()}
@@ -142,6 +149,15 @@ def _print(r: dict):
         cells += [f"{row[c]:>18.4%}" for c in cols if c.startswith("uplift@")]
         cells += [f"{row[c]:>18,.0f}" for c in cols if c.startswith("extra_")]
         print(f"{row['model']:<14}" + "".join(cells))
+
+    print(f"\n95% intervals ({N_BOOT}-resample Poisson bootstrap of the evaluation rows; models held fixed):")
+    print(f"{'model':<14}" + "".join(f"{'extra visits @' + str(int(k * 100)) + '%':>26}" for k in BUDGETS)
+          + f"{'x random @10%':>18}")
+    for row in r["models"]:
+        cells = "".join(f"{row[f'extra_visits@{int(k * 100)}%_ci'][0]:>12,.0f} - "
+                        f"{row[f'extra_visits@{int(k * 100)}%_ci'][1]:<11,.0f}" for k in BUDGETS)
+        lo, hi = row["x_random@10%_ci"]
+        print(f"{row['model']:<14}{cells}{lo:>9.1f} - {hi:<6.1f}")
     print(f"\nuplift@k = treated minus control visit rate among the top k%. "
           f"extra_visits@k = estimated incremental visits from targeting them (of {r['eval_n']:,} eval users).")
 

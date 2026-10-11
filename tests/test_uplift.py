@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from uplift.evaluate import budget_gain, qini_coefficient, uplift_at_k
+from uplift.evaluate import budget_gain, qini_at_k_intervals, qini_coefficient, qini_curve, uplift_at_k
 from uplift.experiment import aipw, balance, cuped, diff_in_means, diff_in_proportions, srm_check
 from uplift.learners import CausalForest, RiskModel, SLearner, TLearner, XLearner
 from uplift.power import achieved_power, mde, sample_size
@@ -121,6 +121,54 @@ def test_cuped_shrinks_variance_without_moving_estimate(campaign):
     assert abs(adj["effect"] - raw["effect"]) < 2 * raw["se"]
 
 
+
+# --- inputs that cannot support a test ---------------------------------------
+# Each of these used to return a number. Three returned p = 0.0 - maximally
+# "significant" - for an empty arm, a constant outcome and a 2/0 treatment.
+
+_y = np.r_[np.ones(25), np.zeros(25), np.ones(10), np.zeros(40)]
+_t = np.r_[np.ones(50), np.zeros(50)]
+
+
+@pytest.mark.parametrize("y, t, why", [
+    (_y[:3], np.ones(3), "at least 2 rows"),                      # empty control arm
+    (np.zeros(100), _t, "does not vary"),                         # constant outcome
+    (_y, np.r_[np.full(50, 2), np.zeros(50)], "must be 0/1"),     # 2/0 coding
+    (_y, _t[:-1], "rows but treatment has"),                      # lengths differ
+    (np.r_[_y[:-1], np.nan], _t, "outcome has missing"),
+    (_y, np.r_[_t[:-1], np.nan], "treatment has missing"),
+])
+def test_untestable_inputs_raise_instead_of_returning_a_p_value(y, t, why):
+    with pytest.raises(ValueError, match=why):
+        diff_in_means(y, t)
+
+
+def test_count_and_srm_inputs_are_checked():
+    with pytest.raises(ValueError, match="successes"):
+        diff_in_proportions(12, 10, 3, 10)                        # more successes than units
+    with pytest.raises(ValueError, match="successes"):
+        diff_in_proportions(1, 1, 3, 10)                          # a one-row arm
+    with pytest.raises(ValueError, match="does not vary"):
+        diff_in_proportions(0, 50, 0, 50)
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        srm_check(counts=(50, 50), expected_treat_frac=1.0)
+    with pytest.raises(ValueError, match="no units"):
+        srm_check(counts=(0, 0))
+
+
+def test_cuped_and_aipw_check_their_extra_inputs():
+    with pytest.raises(ValueError, match="constant"):
+        cuped(_y, _t, np.ones(100))
+    with pytest.raises(ValueError, match=r"\[0, 1\]"):
+        aipw(_y, _t, np.full(100, 0.5), np.full(100, 0.3), np.full(100, 1.2))
+    with pytest.raises(ValueError, match="e must have"):
+        aipw(_y, _t, np.full(100, 0.5), np.full(100, 0.3), np.full(99, 0.5))
+
+
+def test_aipw_reports_how_many_propensities_it_clipped():
+    e = np.r_[np.full(10, 0.001), np.full(90, 0.5)]
+    assert aipw(_y, _t, np.full(100, 0.5), np.full(100, 0.2), e)["clipped"] == 10
+
 # --- evaluation --------------------------------------------------------------
 
 def test_qini_rewards_truth_and_not_noise(campaign):
@@ -130,6 +178,22 @@ def test_qini_rewards_truth_and_not_noise(campaign):
     assert abs(qini_coefficient(y, t, noise)) < qini_coefficient(y, t, truth)
     assert uplift_at_k(y, t, truth, 0.2) > uplift_at_k(y, t, -truth, 0.2)
 
+
+
+def test_policy_intervals_bracket_the_estimate_and_cover_the_planted_gain(campaign):
+    y, t, truth = campaign["outcome"].to_numpy(), campaign["treatment"].to_numpy(), campaign["true_uplift"].to_numpy()
+    scores = {"random": np.random.default_rng(1).uniform(size=len(y)), "truth": truth}
+    iv = qini_at_k_intervals(y, t, scores, [0.2], n_boot=200)
+    _, q = qini_curve(y, t, truth)
+    m = int(round(0.2 * len(y)))
+    lo, hi = iv["truth"][0.2]["extra"]
+    assert lo < q[m] < hi
+    # what the Qini value estimates: treated count in the top 20% x their mean uplift
+    top = np.argsort(-truth, kind="stable")[:m]
+    assert lo < t[top].sum() * truth[top].mean() < hi
+    # the reference compared with itself has no gap; the true ranking clearly beats it
+    assert iv["random"][0.2]["vs_reference"] == (0.0, 0.0)
+    assert iv["truth"][0.2]["vs_reference"][0] > 0 and iv["truth"][0.2]["ratio"][0] > 1
 
 # --- pipeline ----------------------------------------------------------------
 
