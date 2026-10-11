@@ -2,7 +2,7 @@
 
 **Who will a campaign actually change?** Not "who is at risk": who will behave differently *because* of the offer.
 
-The sequel to [customer_churn_alert_agent](https://github.com/Khatalahmed/customer_churn_alert_agent). That project ranks customers by churn risk and uses an *assumed* coupon uplift, and its hold-out test (11 treated vs 4 control) came back inconclusive. This project measures uplift properly: valid experiment checks, power analysis, uplift models and a budget decision. Every method is first tested against a known answer, then run on a 14M-user real randomized trial.
+The sequel to [customer_churn_alert_agent](https://github.com/Khatalahmed/customer_churn_alert_agent). That project ranks customers by churn risk and prices actions with an *assumed* uplift. Its first hold-out test (11 treated vs 4 control) came back inconclusive, and it now plans a powered experiment (~306 customers per arm). Even that can only measure the *average* effect: with ~40 churn events per arm, *which* customer responds is out of reach. This project answers that question where the data allows it: valid experiment checks, power analysis, uplift models and a budget decision. Every method is first tested against a known answer, then run on a 14M-user real randomized trial.
 
 ## 1. Synthetic campaign: does each method recover a planted answer?
 
@@ -28,7 +28,7 @@ Models trained on one half, judged on the other. "Saved" is the **true** number 
 
 **Targeting by risk is barely better than random.** The riskiest customers include lost causes the offer can't win back. Targeting by uplift saves **2.2× as many customers** for the same budget, 98% of the ceiling.
 
-**Power analysis:** to detect a +5 pp lift on an 8% base rate, a test needs **589 customers per arm**. The churn repo's 4-customer control arm could only detect a lift of +71 pp.
+**Power analysis:** to detect a +5 pp lift on an 8% base rate, a test needs **589 customers per arm**. The churn repo's first test, with a 4-customer control arm, could only have detected a lift of +71 pp, which is why its current plan sizes the arms first.
 
 ## 2. Criteo: 13,979,592 real users from a randomized ad trial
 
