@@ -70,9 +70,9 @@ Data: [Criteo Uplift v2.1](https://huggingface.co/datasets/criteo/criteo-uplift)
 4. Any failure → the exact offenders go back to the model; after 3 failed drafts **nothing is published**.
 5. `results/readout_check.json` maps every published number to its source fact and keeps each rejected draft's errors.
 
-Example output from a real run: [the readout](docs/example_readout.md) and [its audit log](docs/example_readout_check.json).
+Example output from a real run: [the readout](docs/example_readout.md) and [its audit log](docs/example_readout_check.json). That draft passed on the first attempt: all 43 of its numbers trace to a fact.
 
-In one real run the first draft was rejected for writing "1st/99th percentile", numbers the pipeline never produced. The second draft passed with 46 of 46 numbers traced. The checker guards *numbers*: a real number attached to the wrong model would pass, which is why the log records which fact each number matched.
+Drafts do get rejected. In an earlier run (its log was not kept), the first draft wrote "1st/99th percentile", numbers the pipeline never produced; the retry passed. The rejection path itself is covered by offline tests: a bad draft is retried with its exact offenders, and one that never gets its numbers right is never published. The checker guards *numbers*: a real number attached to the wrong model would pass, which is why the log records which fact each number matched.
 
 ## Run it
 
@@ -110,10 +110,11 @@ uplift/
 - [x] Causal forest (EconML) as a fourth learner
 - [x] Criteo Uplift v2.1: 14M users, pooled-test confounding found and corrected (AIPW)
 - [x] LLM-written experiment readout (Azure OpenAI), rejected if any number disagrees with the computed results
-- [ ] Re-run the churn repo's coupon test at the powered sample size; replace its assumed uplift with a measured model
+- [x] Linked from the churn repo, which explains why its uplift stays *assumed*: with 300 customers per arm and 11–14 churn events, it can't settle even the average effect (~973 per arm needed), let alone model per-customer uplift
 - [ ] FastAPI scoring service
 
-## Data licence & citation
+## Licence & citation
 
-Criteo Uplift v2.1 is CC BY-NC-SA 4.0 and is never committed to this repo.
+The code is [MIT](LICENSE). The data is not: Criteo Uplift v2.1 is CC BY-NC-SA 4.0 (non-commercial)
+and is never committed to this repo.
 Diemert, Betlei, Renaudin, Amini. *A Large Scale Benchmark for Uplift Modeling.* AdKDD workshop, KDD 2018.
